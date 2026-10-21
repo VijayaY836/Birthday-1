@@ -187,7 +187,7 @@
     11: 'The aayammas who actually made it were just outside the frame :)',
     12: 'Dodged the wave (only to be hit my the incoming one :) )',
     13: 'She tried to shoot me peeps',
-    14: 'This cute ngl',
+    14: 'This cute ngl..',
     15: 'Group Photo 1',
     16: 'Group Photo 2',
     17: 'Group Photo 3',
