@@ -178,7 +178,7 @@
     2:  'Already encroaching my territory',
     3:  'Naanna ID card and my book btw',
     4:  'No one quite understood how she got there',
-    5:  'How come I ever get that face?',
+    5:  'How come I never get that face?',
     6:  'Look at the CURLS',
     7:  '"What do you mean I can not steal your hw?"',
     8:  '"Yo Peasants"',
