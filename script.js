@@ -44,7 +44,8 @@
     K: '#141414', k: '#3d3d52', S: '#f2c39b', E: '#1d1d1d', M: '#c4504d',
     P: '#ff6fb5', p: '#d94a92', B: '#3a7bff', b: '#2349b0', H: '#5a3a2a',
     W: '#ffffff', w: '#bfe9ff', G: '#101018', Y: '#ffd84a', C: '#3ad8ff',
-    R: '#ff3b5c', r: '#b81d3a'
+    R: '#ff3b5c', r: '#b81d3a',
+    V: '#9b5de5', v: '#6a3aa8', N: '#43b65a', n: '#2b7a3c'
   };
 
   // Bindu: silky long black hair, pink dress
@@ -124,6 +125,46 @@
       'RR..'] }
   ];
   const owned = new Set(), worn = new Set();
+
+  /* ---------- RAW MODE: Srishti & Kumuda ---------- */
+  // Off by default. Turn on with the RAW MODE button on the start screen,
+  // or open the page as index.html?raw
+  let RAW = new URLSearchParams(location.search).has('raw');
+
+  const ENEMY_WALK1 = [
+    '....AAAA....',
+    '..AAAAAAAA..',
+    '.AAAAAAAAAA.',
+    '.AEEAAAAEEA.',
+    '.AWEAAAAEWA.',
+    'AAAAAAAAAAAA',
+    'AAAAEEEEAAAA',
+    'AAAEAAAAEAAA',
+    'aAAAAAAAAAAa',
+    '.aaaaaaaaaa.',
+    '..HH....HH..',
+    '.HHH....HHH.'
+  ];
+  const ENEMY_WALK2 = ENEMY_WALK1.slice(0, 10).concat(['...HH..HH...', '..HHH..HHH..']);
+  const ENEMY_SQUASH = ['..AAAAAAAA..', '.AEEAAAAEEA.', 'AAAAAAAAAAAA', 'aaaaaaaaaaaa'];
+  const tint = (map, A, a) => map.map(r => r.replace(/A/g, A).replace(/a/g, a));
+
+  const enemies = [
+    { name: 'SRISHTI', home: blockX(6) + 220, A: 'V', a: 'v' },
+    { name: 'KUMUDA',  home: blockX(12) + 220, A: 'N', a: 'n' }
+  ].map(e => ({
+    ...e, x: e.home, y: GROUND - 44, w: 44, h: 44, dir: -1, dead: 0,
+    walk1: tint(ENEMY_WALK1, e.A, e.a), walk2: tint(ENEMY_WALK2, e.A, e.a), squash: tint(ENEMY_SQUASH, e.A, e.a)
+  }));
+  let hurtT = 0;
+
+  const rawBtn = document.getElementById('rawBtn');
+  function syncRaw() {
+    rawBtn.textContent = `RAW MODE: ${RAW ? 'ON' : 'OFF'}`;
+    rawBtn.classList.toggle('on', RAW);
+  }
+  rawBtn.addEventListener('click', e => { e.stopPropagation(); RAW = !RAW; syncRaw(); rawBtn.blur(); });
+  syncRaw();
   let shopLock = false;
 
   const HEART = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...'];
@@ -133,24 +174,24 @@
      Write between the quotes. Leave '' empty to show no caption.
      Use \n for a new line. */
   const CAPTIONS = {
-    1:  'Non Chalant af',
-    2:  'Already encroaching my territory',
-    3:  'Naanna ID card and my book btw',
-    4:  'No one quite understood how she got there',
-    5:  'How come I ever get that face?',
-    6:  'Look at the CURLS',
-    7:  '"What do you mean I can not steal your hw?"',
-    8:  '"Yo Peasants"',
-    9:  'I almost got in trouble for this!',
-    10: 'Not skipping the og',
-    11: 'The aayammas who actually made it were just outside the frame :)',
-    12: 'Dodged the wave (only to be hit my the incoming one :) )',
-    13: 'She tried to shoot me peeps',
-    14: 'This cute ngl',
-    15: 'Group Photo 1',
-    16: 'Group Photo 2',
-    17: 'Group Photo 3',
-    18: 'Photo Credits : me'
+    1:  '',
+    2:  '',
+    3:  '',
+    4:  '',
+    5:  '',
+    6:  '',
+    7:  '',
+    8:  '',
+    9:  '',
+    10: '',
+    11: '',
+    12: '',
+    13: '',
+    14: '',
+    15: '',
+    16: '',
+    17: '',
+    18: ''
   };
 
   const PHOTO_DIR = 'Photos/';   // folder next to index.html
@@ -252,6 +293,7 @@
     coin:  () => { tone(988, 0.06, 'square', 0.12); tone(1319, 0.22, 'square', 0.12, 0.06); },
     bump:  () => tone(140, 0.09, 'triangle', 0.4),
     memory:() => ['C5','E5','G5','C6'].forEach((n, k) => tone(freq(n), 0.18, 'square', 0.13, k * 0.07)),
+    stomp: () => { tone(220, 0.08, 'square', 0.2, 0, 90); tone(660, 0.14, 'square', 0.13, 0.08); },
     nope:  () => { tone(330, 0.15, 'square', 0.15); tone(247, 0.3, 'square', 0.15, 0.15); },
     win:   () => ['C5','E5','G5','C6','G5','C6','E6'].forEach((n, k) =>
              tone(freq(n), k === 6 ? 0.9 : 0.16, 'square', 0.14, k * 0.15))
@@ -559,9 +601,10 @@
     if (state === 'title' || state === 'shop' || state === 'photo') return;
 
     if (state === 'play') {
-      if (keys.left) { P.vx -= ACC; P.face = -1; }
-      if (keys.right) { P.vx += ACC; P.face = 1; }
-      if (!keys.left && !keys.right) P.vx *= FRICTION;
+      const ctrl = hurtT <= 40;   // brief loss of control after getting bumped
+      if (ctrl && keys.left) { P.vx -= ACC; P.face = -1; }
+      if (ctrl && keys.right) { P.vx += ACC; P.face = 1; }
+      if (ctrl && !keys.left && !keys.right) P.vx *= FRICTION;
       P.vx = clamp(P.vx, -MAXV, MAXV);
       if (Math.abs(P.vx) < 0.05) P.vx = 0;
 
@@ -608,6 +651,33 @@
         c.got = true; coinCount++; sfx.coin();
       }
     }
+
+    // raw mode: Srishti & Kumuda patrol; stomp them for coins, touching them bumps you back
+    if (RAW) {
+      for (const e of enemies) {
+        if (e.dead) { e.dead++; continue; }
+        if (state !== 'play') continue;
+        e.x += e.dir * 1.2;
+        if (e.x < e.home - 150) e.dir = 1;
+        if (e.x > e.home + 150) e.dir = -1;
+        if (!overlap(P, e)) continue;
+        if (P.vy > 0 && P.y + P.h - P.vy <= e.y + 12) {
+          e.dead = 1;
+          P.vy = -9;
+          coinCount += 3;
+          sfx.stomp();
+          popups.push({ x: e.x + e.w / 2, y: e.y - 20, text: `BYE ${e.name}! +3`, t: 80 });
+        } else if (hurtT === 0) {
+          hurtT = 60;
+          P.vx = P.x + P.w / 2 < e.x + e.w / 2 ? -8 : 8;
+          P.vy = -6;
+          P.onGround = false;
+          sfx.nope();
+          popups.push({ x: P.x + P.w / 2, y: P.y - 16, text: 'OUCH!', t: 50 });
+        }
+      }
+    }
+    if (hurtT > 0) hurtT--;
 
     // zones
     let z = 0;
@@ -864,11 +934,14 @@
       ctx.fillStyle = '#fff3a0'; ctx.fillRect(Math.round(sx - w / 2) + 2, c.y - 9, 2, 10);
     }
 
+    // raw mode enemies
+    if (RAW) for (const e of enemies) drawEnemy(e);
+
     // Bindu
     let spr = BINDU_STAND;
     if (!P.onGround) spr = BINDU_JUMP;
     else if (Math.abs(P.vx) > 0.4) spr = Math.floor(P.anim) % 2 ? BINDU_RUN : BINDU_STAND;
-    paintBindu(ctx, spr, P.x - 4 - camX, P.y - 2, P.face < 0, PX);
+    if (!(hurtT > 0 && frame % 6 < 3)) paintBindu(ctx, spr, P.x - 4 - camX, P.y - 2, P.face < 0, PX);
 
     // hearts
     for (const h of hearts) {
@@ -982,6 +1055,28 @@
       ctx.fillStyle = '#ff4fa3'; ctx.fillRect(Math.round(cx - 22), y - 20, 44, 16);
       text(tag, cx, y - 16, 10, '#fff', 'center', null);
     }
+  }
+
+  function drawEnemy(e) {
+    if (e.dead > 50) return;
+    const sx = Math.round(e.x - 2 - camX);
+    if (sx < -100 || sx > W + 100) return;
+    if (e.dead) {
+      paint(ctx, e.squash, sx, GROUND - 16, false, 4);
+      nameTag(e.name, sx + 24, GROUND - 42);
+      return;
+    }
+    paint(ctx, Math.floor(frame / 10) % 2 ? e.walk2 : e.walk1, sx, e.y - 4, e.dir > 0, 4);
+    nameTag(e.name, sx + 24, e.y - 30);
+  }
+
+  function nameTag(t, cx, y) {
+    ctx.font = `10px ${FONT}`;
+    const w = Math.ceil(ctx.measureText(t).width) + 14;
+    const x = Math.round(cx - w / 2);
+    ctx.fillStyle = '#000'; ctx.fillRect(x - 2, y - 2, w + 4, 22);
+    ctx.fillStyle = '#e53935'; ctx.fillRect(x, y, w, 18);
+    text(t, cx, y + 4, 10, '#fff', 'center', null);
   }
 
   function drawShop(sx) {

@@ -98,6 +98,17 @@ h1 span { color: #ff8fd1; text-shadow: 4px 4px 0 #000; }
 .blink { animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0.15; } }
 
+.raw-btn {
+  display: block;
+  margin: 1.6em auto 0;
+  font-size: clamp(6px, 0.9vw, 10px);
+  padding: 0.7em 1em;
+  background: #555;
+  border-width: 3px;
+  box-shadow: 0 0 0 3px #000;
+}
+.raw-btn.on { background: #e53935; }
+
 #muteBtn {
   position: absolute;
   right: 1.2%;
