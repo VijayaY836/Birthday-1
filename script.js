@@ -185,7 +185,7 @@
     9:  'I almost got in trouble for this!',
     10: 'Not skipping the og',
     11: 'The aayammas who actually made it were just outside the frame :)',
-    12: 'Dodged the wave (only to be hit my the incoming one :) )',
+    12: 'Dodged the wave (only to be hit by the incoming one :) )',
     13: 'She tried to shoot me peeps',
     14: 'This cute ngl..',
     15: 'Group Photo 1',
@@ -274,15 +274,53 @@
                'A4','C5','E5','C5','D5','F5','E5','-', 'D5','E5','F5','G5','E5','D5','C5','-'];
   const BASS = ['C3','C3','F3','F3','C3','C3','G3','G3', 'A2','A2','F3','F3','G3','G3','C3','C3'];
 
+  // A tiny silent WAV, played through an <audio> element. On iPhones this moves the
+  // page onto the media channel, so the game is audible even with the silent switch on.
+  let silentEl = null, unlocked = false;
+  function silentWavURL() {
+    const sr = 8000, n = 800, b = new ArrayBuffer(44 + n), v = new DataView(b);
+    const w = (o, str) => { for (let i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+    w(36, 'data'); v.setUint32(40, n, true);
+    for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+    return URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+  }
+
+  // Called on every tap/click/key press: creates or wakes the audio engine.
+  // Browsers only allow sound to start inside a real user gesture.
   function initAudio() {
-    if (actx) { actx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
-    actx = new AC();
-    master = actx.createGain();
-    master.gain.value = 0.25;
-    master.connect(actx.destination);
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) {}
+    if (!actx) {
+      actx = new AC();
+      master = actx.createGain();
+      master.gain.value = muted ? 0 : 0.25;
+      master.connect(actx.destination);
+    }
+    if (actx.state !== 'running') actx.resume().catch(() => {});
+    if (!unlocked) {
+      // a silent buffer played inside the gesture "unlocks" Web Audio on Safari
+      const src = actx.createBufferSource();
+      src.buffer = actx.createBuffer(1, 1, 22050);
+      src.connect(actx.destination);
+      src.start(0);
+      if (!silentEl) {
+        silentEl = new Audio(silentWavURL());
+        silentEl.loop = true;
+        silentEl.setAttribute('playsinline', '');
+      }
+      silentEl.play().catch(() => {});
+      if (actx.state === 'running') unlocked = true;
+    }
   }
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(ev =>
+    addEventListener(ev, initAudio, { capture: true, passive: true }));
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && actx && actx.state !== 'running') actx.resume().catch(() => {});
+  });
 
   function tone(f, dur, type = 'square', vol = 0.2, when = 0, slideTo = 0) {
     if (!actx) return;
@@ -589,7 +627,8 @@
     initAudio();
     startScreen.classList.add('hidden');
     state = 'play';
-    if (actx) { musicOn = true; nextT = actx.currentTime + 0.05; }
+    musicOn = true;
+    if (actx) nextT = actx.currentTime + 0.05;
     bannerT = 160;
   }
 
