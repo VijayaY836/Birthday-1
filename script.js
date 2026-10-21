@@ -1,6 +1,6 @@
 /* =========================================================
    HAPPY 18TH, BINDU!  — a tiny retro platformer
-   Photos: Photos/Photo1.jpeg ... Photos/Photo18.jpeg
+   Photos: photos/Photo1.jpeg ... photos/Photo18.jpeg
    (.jpg / .JPG / .JPEG also work — it tries each)
    ========================================================= */
 (() => {
@@ -174,34 +174,43 @@
      Write between the quotes. Leave '' empty to show no caption.
      Use \n for a new line. */
   const CAPTIONS = {
-    1:  '',
-    2:  '',
-    3:  '',
-    4:  '',
-    5:  '',
-    6:  '',
-    7:  '',
-    8:  '',
-    9:  '',
-    10: '',
-    11: '',
-    12: '',
-    13: '',
-    14: '',
-    15: '',
-    16: '',
-    17: '',
-    18: ''
+    1:  'Non Chalant af',
+    2:  'Already encroaching my territory',
+    3:  'Naanna ID card and my book btw',
+    4:  'No one quite understood how she got there',
+    5:  'How come I ever get that face?',
+    6:  'Look at the CURLS',
+    7:  '"What do you mean I can not steal your hw?"',
+    8:  '"Yo Peasants"',
+    9:  'I almost got in trouble for this!',
+    10: 'Not skipping the og',
+    11: 'The aayammas who actually made it were just outside the frame :)',
+    12: 'Dodged the wave (only to be hit my the incoming one :) )',
+    13: 'She tried to shoot me peeps',
+    14: 'This cute ngl',
+    15: 'Group Photo 1',
+    16: 'Group Photo 2',
+    17: 'Group Photo 3',
+    18: 'Photo Credits : me'
   };
 
-  const PHOTO_DIR = 'Photos/';   // folder next to index.html
+  const PHOTO_DIR = 'photos/';   // folder next to index.html (lowercase!)
   const photos = Array.from({ length: TOTAL }, (_, i) => {
     const o = { img: new Image(), ok: false };
-    const exts = ['jpeg', 'jpg', 'JPG', 'JPEG', 'png'];
+    // Live servers (Vercel, Netlify, GitHub Pages) are case-sensitive, so try
+    // every common spelling of the folder, file name and extension.
+    const dirs = [PHOTO_DIR, 'Photos/', 'PHOTOS/', ''];
+    const names = ['Photo', 'photo', 'PHOTO'];
+    const exts = ['jpeg', 'jpg', 'JPG', 'JPEG', 'Jpeg', 'Jpg', 'png', 'PNG'];
+    const tries = [];
+    for (const d of dirs) for (const n of names) for (const x of exts) tries.push(`${d}${n}${i + 1}.${x}`);
     let e = 0;
     o.img.onload = () => { o.ok = true; };
-    o.img.onerror = () => { if (++e < exts.length) o.img.src = `${PHOTO_DIR}Photo${i + 1}.${exts[e]}`; };
-    o.img.src = `${PHOTO_DIR}Photo${i + 1}.${exts[0]}`;
+    o.img.onerror = () => {
+      if (++e < tries.length) o.img.src = tries[e];
+      else console.warn(`Photo ${i + 1} not found. Tried e.g. ${tries[0]}`);
+    };
+    o.img.src = tries[0];
     return o;
   });
 
