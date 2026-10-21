@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Happy 18th, Bindu!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="stage">
+    <canvas id="game" width="960" height="540"></canvas>
+
+    <!-- START SCREEN -->
+    <div id="startScreen" class="overlay">
+      <div class="title-box">
+        <p class="kicker">&#9733; A LITTLE GAME FOR &#9733;</p>
+        <h1>HAPPY 18TH,<br><span>BINDU!</span></h1>
+        <p class="how">
+          &larr; &rarr; TO RUN &nbsp;&nbsp; SPACE TO JUMP<br>
+          BUMP THE BLOCKS TO FIND YOUR MEMORIES<br>
+          SOMEONE IS WAITING AT THE END...
+        </p>
+        <button id="startBtn" class="pixel-btn blink">PRESS START</button>
+      </div>
+    </div>
+
+    <!-- SHOP -->
+    <div id="shopOverlay" class="overlay hidden">
+      <div class="shop-box">
+        <h2>BIRTHDAY SHOP</h2>
+        <div class="shop-top">
+          <canvas id="shopPreview" width="160" height="230"></canvas>
+          <div class="shop-info">
+            <p class="shop-coins">COINS: <span id="shopCoins">0</span></p>
+            <p class="shop-msg" id="shopMsg"></p>
+          </div>
+        </div>
+        <div id="shopItems" class="shop-items"></div>
+        <button id="shopDone" class="pixel-btn small">DONE - TO THE PARTY!</button>
+      </div>
+    </div>
+
+    <!-- END CARD -->
+    <div id="cardOverlay" class="overlay hidden">
+      <div class="card">
+        <canvas id="danceCanvas" class="card-dance"></canvas>
+        <div class="card-inner">
+          <!-- ✏️ VIJ: WRITE YOUR MESSAGE FOR BINDU HERE -->
+        </div>
+      </div>
+      <button id="replayBtn" class="pixel-btn small">PLAY AGAIN</button>
+    </div>
+
+    <button id="muteBtn" class="pixel-btn tiny">MUSIC: ON</button>
+  </div>
+
+  <!-- EXPANDED PHOTO -->
+  <div id="photoView" class="hidden">
+    <p id="photoViewTag" class="pv-tag"></p>
+    <img id="photoViewImg" alt="A memory of Bindu">
+    <p id="photoViewCap" class="pv-cap hidden"></p>
+    <p class="pv-hint">TAP ANYWHERE TO CLOSE</p>
+  </div>
+
+  <!-- PHONE CONTROLS -->
+  <div id="touch">
+    <div class="dpad">
+      <button data-key="left">&#9664;</button>
+      <button data-key="right">&#9654;</button>
+    </div>
+    <button data-key="jump" class="jump">A</button>
+  </div>
+
+  <div id="rotate">TURN YOUR PHONE<br>SIDEWAYS TO PLAY</div>
+
+  <script src="script.js"></script>
+</body>
+</html>
